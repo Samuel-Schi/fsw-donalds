@@ -32,7 +32,7 @@ const ConsumptionMethodOption = ({
           />
         </div>
         <Button variant="secondary" className="rounded-full" asChild>
-          <Link href={`/${slug}/menu?consumptionMethod=${option}`}>
+          <Link href={`/${slug}?consumptionMethod=${option}`} scroll={false}>
             {buttonText}
           </Link>
         </Button>

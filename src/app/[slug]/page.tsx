@@ -4,17 +4,46 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/prisma";
 
 import ConsumptionMethodOption from "./components/consumption-method-option";
+import RestaurantCategories from "./menu/components/categories";
+import RestaurantHeader from "./menu/components/header";
 
 interface RestaurantPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ consumptionMethod?: string }>;
 }
 
-const RestaurantPage = async ({ params }: RestaurantPageProps) => {
+const isConsumptionMethodValid = (consumptionMethod?: string) => {
+  return (
+    !!consumptionMethod &&
+    ["DINE_IN", "TAKEAWAY"].includes(consumptionMethod.toUpperCase())
+  );
+};
+
+const RestaurantPage = async ({ params, searchParams }: RestaurantPageProps) => {
   const { slug } = await params;
-  const restaurant = await db.restaurant.findUnique({ where: { slug } });
+  const { consumptionMethod } = await searchParams;
+  const restaurant = await db.restaurant.findUnique({
+    where: { slug },
+    include: {
+      menuCategories: {
+        include: { products: true },
+      },
+    },
+  });
   if (!restaurant) {
     return notFound();
   }
+
+  // Forma de consumo escolhida: mostra o cardápio na mesma página
+  if (isConsumptionMethodValid(consumptionMethod)) {
+    return (
+      <div>
+        <RestaurantHeader restaurant={restaurant} />
+        <RestaurantCategories restaurant={restaurant} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-col items-center justify-center px-6 pt-24">
       {/* LOGO E TITULO */}
